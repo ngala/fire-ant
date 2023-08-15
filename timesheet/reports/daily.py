@@ -1,3 +1,7 @@
+'''
+Module for daily reports
+'''
+
 from datetime import datetime
 from timesheet.table import get
 from dateutil.parser import parse
@@ -16,7 +20,13 @@ def daily_report(date_str=None, verbose=True):
     tt = None
     projectwise_work = defaultdict(int)
     if verbose:
-        print("id\t\t\t\t       ", "date_str ", "time", "end_time", "project", "work")
+        print(
+            "id\t\t\t\t       ",
+            "date_str ",
+            "time",
+            "end_time",
+            "project",
+            "work")
         for t in get(where_clause):
 
             if tt is None:

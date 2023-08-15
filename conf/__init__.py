@@ -1,3 +1,7 @@
+
+'''
+Module for configurations
+'''
 import logging
 import tomllib
 
@@ -8,21 +12,21 @@ logger = logging.getLogger(__name__)
 
 def get_config_file():
     """Get the config file path"""
-    cf = BASE_DIR.joinpath("config.toml")
-    if cf.exists():
-        return cf
-    cf = BASE_DIR.joinpath("config.toml.example").rename(cf)
-    return cf
+    config = BASE_DIR.joinpath("config.toml")
+    if config.exists():
+        return config
+    config = BASE_DIR.joinpath("config.toml.example").rename(config)
+    return config
 
 
 def load():
     """Load the settings from the config file"""
 
     config_file = get_config_file()
-    with open(str(config_file), "rb") as f:
-        t = tomllib.load(f)
+    with open(str(config_file), "rb") as file:
+        setting = tomllib.load(file)
         logger.debug("Settings loaded successfuly")
-    return t
+    return setting
 
 
 # This is to have only one instance of the settings

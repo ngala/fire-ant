@@ -2,52 +2,82 @@
 """
 This is the entry point for command line interface.
 """
-from os import path
+
 from datetime import datetime
 import shutil
 import sys
+
+import click
 
 # from constants import BASE_DIR
 from conf import SETTINGS
 
 WORD_COUNT = "word_count"
 
+VERBOSE = None
+
+
+@click.group
+@click.option("--verbose", is_flag=True, help="Switch verbosity")
+def cli(verbose):
+    """
+    Global options for commandline
+    """
+
+    if verbose:
+        SETTINGS["timesheet"]["verbose"] = not SETTINGS["timesheet"]["verbose"]
+        click.echo(
+            f'Default verbosity is {not SETTINGS["timesheet"]["verbose"]}.'
+            ' Verbosity switched to {SETTINGS["timesheet"]["verbose"]}'
+        )
+    else:
+        click.echo(f'Default verbosity is {SETTINGS["timesheet"]["verbose"]}')
+
+
+@cli.command
+@click.argument("entry", nargs=-1)
+def work(entry):
+    from timesheet.reports.daily import daily_report
+
+    if len(entry) == 0:
+        daily_report(verbose=VERBOSE)
+        return
+
+    from timesheet.parser import make_entry
+
+    make_entry(entry)
+
+
+@cli.command
+def report():
+    pass
+
+
+@cli.command
+def run():
+    pass
+
+@cli.command
+def check():
+    import pg
+
+    try:
+        record = pg.fetch_one("SELECT version();")
+    except Exception as exc:
+        print("You are not connected to database")
+        print(exc)
+        return
+    print("You are connected to - ", record[0], "\n")
+
 
 def main():
-    ll = len(sys.argv)
-    if ll == 1:
+    argument_count = len(sys.argv)
+    if argument_count == 1:
         print("No argument passed")
         exit(0)
 
-    if sys.argv[1] == "--work" or sys.argv[1] == "-w":
-
-        from timesheet.reports.daily import daily_report
-
-        if len(sys.argv[2:]) != 0:
-            from timesheet.parser import make_entry
-
-            e = " ".join(sys.argv[2:])
-            make_entry(e)
-
-        v = SETTINGS["timesheet"]["verbose"]
-
-        daily_report(verbose=v)
-        exit(0)
-
-    if sys.argv[1] == "--check":
-        import pg
-
-        try:
-            record = pg.fetch_one("SELECT version();")
-        except Exception as exc:
-            print("You are not connected to database")
-            print(exc)
-            exit(1)
-        print("You are connected to - ", record[0], "\n")
-        exit(0)
-
     if sys.argv[1] == "--delete":
-        if ll < 3:
+        if argument_count < 3:
             print("Insufficient options for --delete")
             exit(1)
         from timesheet.table import delete
@@ -72,7 +102,9 @@ def main():
         exit(0)
 
     if sys.argv[1] == "-r":
-        shutil.copyfile(WORD_COUNT, f"{WORD_COUNT}_{datetime.now().isoformat()}")
+        shutil.copyfile(
+            WORD_COUNT,
+            f"{WORD_COUNT}_{datetime.now().isoformat()}")
         with open(WORD_COUNT, "w") as f:
             f.write("0")
         exit()
@@ -85,4 +117,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    cli()
