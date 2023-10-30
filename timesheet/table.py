@@ -47,7 +47,7 @@ def get(
     Get entry from table
     '''
     query = f"select id, date_str, end_time, work, project, created_at " \
-            "from timesheet {where_clause} {order_by_clause} {limit_clause};"
+            f"from timesheet {where_clause} {order_by_clause} {limit_clause};"
     return pg.yield_results(query)
 
 

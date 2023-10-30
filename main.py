@@ -28,7 +28,7 @@ def cli(verbose):
         SETTINGS["timesheet"]["verbose"] = not SETTINGS["timesheet"]["verbose"]
         click.echo(
             f'Default verbosity is {not SETTINGS["timesheet"]["verbose"]}.'
-            ' Verbosity switched to {SETTINGS["timesheet"]["verbose"]}'
+            f' Verbosity switched to {SETTINGS["timesheet"]["verbose"]}'
         )
     else:
         click.echo(f'Default verbosity is {SETTINGS["timesheet"]["verbose"]}')
@@ -40,6 +40,7 @@ def work(entry):
     from timesheet.reports.daily import daily_report
 
     if len(entry) == 0:
+        click.echo("No entry passed. Running daily report")
         daily_report(verbose=VERBOSE)
         return
 
