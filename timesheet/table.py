@@ -1,5 +1,5 @@
 '''
-Module containing table functions
+Module containing table functions for timesheet
 '''
 import logging
 from datetime import datetime

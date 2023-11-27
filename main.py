@@ -3,16 +3,10 @@
 This is the entry point for command line interface.
 """
 
-from datetime import datetime
-import shutil
-import sys
-
 import click
 
 # from constants import BASE_DIR
 from conf import SETTINGS
-
-WORD_COUNT = "word_count"
 
 VERBOSE = None
 
@@ -37,29 +31,47 @@ def cli(verbose):
 @cli.command
 @click.argument("entry", nargs=-1)
 def work(entry):
-    from timesheet.reports.daily import daily_report
-
-    if len(entry) == 0:
-        click.echo("No entry passed. Running daily report")
-        daily_report(verbose=VERBOSE)
-        return
-
+    '''
+    Add entry to timesheet
+    '''
     from timesheet.parser import make_entry
 
+    if len(entry) == 0:
+        click.echo("No entry passed. Exiting")
+        return
     make_entry(entry)
 
 
 @cli.command
-def report():
-    pass
+@click.argument("date_str", nargs=-1)
+def report(date_str):
+    '''
+    Generate report
+    '''
+    from timesheet.reports.daily import daily_report
+
+    if len(date_str) == 0:
+        click.echo("No entry passed. Running daily report")
+        daily_report(verbose=VERBOSE)
+        return
+
+    daily_report(date_str[0], verbose=VERBOSE)
 
 
 @cli.command
 def run():
-    pass
+    '''
+    run a fastapi server
+    '''
+    click.echo("not implemented fastapi server")
+    # cli.echo("Starting fastapi server")
+
 
 @cli.command
 def check():
+    '''
+    Check if database is connected
+    '''
     import pg
 
     try:
@@ -69,52 +81,6 @@ def check():
         print(exc)
         return
     print("You are connected to - ", record[0], "\n")
-
-
-def main():
-    argument_count = len(sys.argv)
-    if argument_count == 1:
-        print("No argument passed")
-        exit(0)
-
-    if sys.argv[1] == "--delete":
-        if argument_count < 3:
-            print("Insufficient options for --delete")
-            exit(1)
-        from timesheet.table import delete
-
-        if sys.argv[2] != "":
-            print(sys.argv[2])
-            delete(sys.argv[2])
-        else:
-            print("Delete option needs timesheet id")
-            exit(1)
-        exit(0)
-
-    if sys.argv[1] == "--daily-work" or sys.argv[1] == "-d":
-        from timesheet.reports.daily import daily_report
-
-        v = SETTINGS["timesheet"]["verbose"]
-        if len(sys.argv) == 3:
-            date_str = sys.argv[2]
-            daily_report(date_str, v)
-        else:
-            daily_report(verbose=v)
-        exit(0)
-
-    if sys.argv[1] == "-r":
-        shutil.copyfile(
-            WORD_COUNT,
-            f"{WORD_COUNT}_{datetime.now().isoformat()}")
-        with open(WORD_COUNT, "w") as f:
-            f.write("0")
-        exit()
-
-    if sys.argv[1] == "run":
-        from server import run_server
-
-        run_server()
-        exit(0)
 
 
 if __name__ == "__main__":
