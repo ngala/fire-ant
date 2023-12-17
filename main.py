@@ -100,24 +100,24 @@ def check(tables):
     try:
         record = pg.fetch_one("SELECT version();")
     except Exception as exc:
-        print("You are not connected to database")
-        print(exc)
+        click.echo("You are not connected to database")
+        click.echo(exc)
         return
-    print("You are connected to - ", record[0], "\n")
+    click.echo("You are connected to - ", record[0], "\n")
 
     if tables:
-        print("Checking tables")
+        click.echo("Checking tables")
 
         query = "SELECT * FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema';"
         tables = [a[1] for a in pg.yield_results(query)]
-        print("Tables found:", tables)
+        click.echo("Tables found:", tables)
 
         if 'project' not in tables:
-            return print("project table not found")
+            return click.echo("project table not found")
         if 'timesheet' not in tables:
-            return print("timesheet table not found")
+            return click.echo("timesheet table not found")
 
-        print("All tables found")
+        click.echo("All tables found")
 
 if __name__ == "__main__":
     cli()
