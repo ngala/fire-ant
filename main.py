@@ -5,7 +5,6 @@ This is the entry point for command line interface.
 
 import click
 
-# from constants import BASE_DIR
 from conf import SETTINGS
 
 VERBOSE = None
@@ -43,6 +42,30 @@ def work(entry):
 
 
 @cli.command
+@click.option("--name", prompt="Project name", help="Project name")
+@click.option("--short_name", prompt="Project short name", help="Project short name")
+@click.option("--description", prompt="Project description", help="Project description")
+def create_project(name, short_name, description):
+    '''
+    Add project to timesheet
+    '''
+
+    from project.table import insert
+
+    insert(name, short_name, description)
+
+
+@cli.command
+def lprj():
+    '''
+    List projects
+    '''
+    from project.table import get
+
+    for e in get():
+        click.echo(f"{e}")
+
+@cli.command
 @click.argument("date_str", nargs=-1)
 def report(date_str):
     '''
@@ -64,11 +87,11 @@ def run():
     run a fastapi server
     '''
     click.echo("not implemented fastapi server")
-    # cli.echo("Starting fastapi server")
 
 
 @cli.command
-def check():
+@click.option("--tables", is_flag=True, help="Table name")
+def check(tables):
     '''
     Check if database is connected
     '''
@@ -82,6 +105,19 @@ def check():
         return
     print("You are connected to - ", record[0], "\n")
 
+    if tables:
+        print("Checking tables")
+
+        query = "SELECT * FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema';"
+        tables = [a[1] for a in pg.yield_results(query)]
+        print("Tables found:", tables)
+
+        if 'project' not in tables:
+            return print("project table not found")
+        if 'timesheet' not in tables:
+            return print("timesheet table not found")
+
+        print("All tables found")
 
 if __name__ == "__main__":
     cli()

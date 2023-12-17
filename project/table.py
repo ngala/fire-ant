@@ -38,3 +38,21 @@ def delete(id):
     q = f"DELETE FROM timesheet where id = '{id}'"
     print(q)
     pg.execute(q)
+
+
+def get(
+    where_clause="",
+    order_by_clause="order by name ASC",
+    limit_clause="limit 50 offset 0",
+):
+    '''
+    Get entry from table
+    '''
+
+    if where_clause.strip() != "" and not where_clause.lower().startswith("where"):
+        raise Exception("where_clause must start with WHERE")
+
+    query = f"select id, name, short_name, description, created_at " \
+            f"from project {where_clause} {order_by_clause} {limit_clause};"
+    return pg.yield_results(query)
+
