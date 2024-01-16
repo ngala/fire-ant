@@ -4,8 +4,9 @@ Table: project
 '''
 from datetime import datetime
 from uuid import uuid4
-import pg
 
+import utils.pg as pg
+from utils.cprint import cprint
 
 table_query = (
     """CREATE TABLE IF NOT EXISTS project (
@@ -30,13 +31,13 @@ def insert(name, short_name, description):
         '{description}',
         {datetime.now().timestamp()}
     )"""
-    print("-->", s)
+    cprint("--> {s}")
     pg.execute(s)
 
 
 def delete(id):
     q = f"DELETE FROM timesheet where id = '{id}'"
-    print(q)
+    cprint(q)
     pg.execute(q)
 
 

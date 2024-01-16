@@ -15,8 +15,15 @@ def get_config_file():
     config = BASE_DIR.joinpath("config.toml")
     if config.exists():
         return config
-    config = BASE_DIR.joinpath("config.toml.example").rename(config)
-    return config
+
+    config = BASE_DIR.joinpath("config.toml.example")
+    if config.exists():
+        with open(str(config)) as file:
+            with open(str(BASE_DIR.joinpath("config.toml")), "w") as new_file:
+                new_file.write(file.read())
+        return config
+    else:
+        raise Exception("Config file not found")
 
 
 def load():

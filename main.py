@@ -4,8 +4,9 @@ This is the entry point for command line interface.
 """
 
 import click
-
 from conf import SETTINGS
+from utils.cprint import cprint
+
 
 VERBOSE = None
 
@@ -19,13 +20,12 @@ def cli(verbose):
 
     if verbose:
         SETTINGS["timesheet"]["verbose"] = not SETTINGS["timesheet"]["verbose"]
-        click.echo(
+        cprint(
             f'Default verbosity is {not SETTINGS["timesheet"]["verbose"]}.'
             f' Verbosity switched to {SETTINGS["timesheet"]["verbose"]}'
         )
     else:
-        click.echo(f'Default verbosity is {SETTINGS["timesheet"]["verbose"]}')
-
+        cprint(f'Default verbosity is {SETTINGS["timesheet"]["verbose"]}')
 
 @cli.command
 @click.argument("entry", nargs=-1)
@@ -36,10 +36,25 @@ def work(entry):
     from timesheet.parser import make_entry
 
     if len(entry) == 0:
-        click.echo("No entry passed. Exiting")
+        cprint("No entry passed. Exiting", 'red')
         return
+    
     make_entry(entry)
 
+@cli.command
+@click.argument("uid", nargs=1)
+def delete(uid):
+    '''
+    Delete entry from timesheet using uid. 
+    # TODO: If uid is not passed, it will delete last entry
+    '''
+
+    from timesheet.table import delete
+
+    try:
+        delete(uid)
+    except Exception as exc:
+        cprint(exc, 'red')
 
 @cli.command
 @click.option("--name", prompt="Project name", help="Project name")
@@ -62,8 +77,13 @@ def lprj():
     '''
     from project.table import get
 
+    first = True
     for e in get():
-        click.echo(f"{e}")
+        if first:
+            cprint(f"id\t\t\t\tname\tshort_name\tdescription")
+            first = False
+        cprint(f"{e[0]}\t\t\t\t{e[1]}\t{e[2]}\t{e[3]}")
+
 
 @cli.command
 @click.argument("date_str", nargs=-1)
@@ -74,11 +94,11 @@ def report(date_str):
     from timesheet.reports.daily import daily_report
 
     if len(date_str) == 0:
-        click.echo("No entry passed. Running daily report")
-        daily_report(verbose=VERBOSE)
+        cprint("No entry passed. Running daily report")
+        daily_report(verbose=SETTINGS["timesheet"]["verbose"])
         return
 
-    daily_report(date_str[0], verbose=VERBOSE)
+    daily_report(date_str[0], verbose=SETTINGS["timesheet"]["verbose"])
 
 
 @cli.command
@@ -86,7 +106,7 @@ def run():
     '''
     run a fastapi server
     '''
-    click.echo("not implemented fastapi server")
+    cprint("not implemented fastapi server", "red")
 
 
 @cli.command
@@ -95,29 +115,30 @@ def check(tables):
     '''
     Check if database is connected
     '''
-    import pg
+    import utils.pg as pg
 
     try:
         record = pg.fetch_one("SELECT version();")
     except Exception as exc:
-        click.echo("You are not connected to database")
-        click.echo(exc)
+        cprint("You are not connected to database", "red")
+        cprint(exc, "red")
         return
-    click.echo("You are connected to - ", record[0], "\n")
+    cprint(f"You are connected to - {record[0]}\n")
 
     if tables:
-        click.echo("Checking tables")
+        cprint("Checking tables")
 
         query = "SELECT * FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema';"
         tables = [a[1] for a in pg.yield_results(query)]
-        click.echo("Tables found:", tables)
+        cprint("Tables found: {tables}")
 
         if 'project' not in tables:
-            return click.echo("project table not found")
+            return cprint("project table not found", "red")
         if 'timesheet' not in tables:
-            return click.echo("timesheet table not found")
+            return cprint("timesheet table not found", "red")
 
-        click.echo("All tables found")
+        cprint("All tables found")
+
 
 if __name__ == "__main__":
     cli()

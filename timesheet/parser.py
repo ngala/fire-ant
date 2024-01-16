@@ -1,10 +1,13 @@
 '''
 Parser for work entry
 '''
-from typing import Tuple
+from typing import Tuple, List
 import re
 from datetime import datetime
 from dateutil.parser import parse as datetime_parse
+import click
+
+from utils.cprint import cprint
 from timesheet.table import insert, get, delete
 
 
@@ -38,7 +41,7 @@ def insert_entry(time_str: str, entry_str: str, merge: bool = False):
     except Exception:
         entry_time = datetime.now()
     proj, entry = entry_parse(entry_str)
-    print(entry_time, proj, entry, sep="--")
+    cprint(f"{entry_time}--{proj}--{entry}")
 
     if merge:
         date_str = entry_time.strftime("%Y-%m-%d")
@@ -54,20 +57,14 @@ def insert_entry(time_str: str, entry_str: str, merge: bool = False):
             if entry_[4] == proj and entry_[3] == entry:
                 # delete last entry
                 entry_id = entry_[0]
-                print("Merging with last entry")
+                cprint("Merging with last entry")
                 delete(entry_id)
 
     insert(entry_time, proj, entry)
 
 
-def make_entry(entry: str):
+def make_entry(entry: List[str]):
     """Make entry in timesheet table"""
-
-    # ee = entry.strip().split()
-    # if len(ee) == 0:
-    #     raise Exception("Invalid")
-
-    # ee = [e.strip() for e in ee]
 
     if not re.match("^[0-9:]+$", entry[0]):
         insert_entry(datetime.now().isoformat(), " ".join(entry), True)

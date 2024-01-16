@@ -1,10 +1,11 @@
 '''
 Module containing table functions for timesheet
 '''
+from typing import List
 import logging
 from datetime import datetime
 from uuid import uuid4
-import pg
+import utils.pg as pg
 
 logger = logging.getLogger(__name__)
 
@@ -59,5 +60,6 @@ def delete(id: str):
         s = f"DELETE FROM timesheet WHERE id = '{id}'"
         logger.debug("--> %v", s)
         pg.execute(s)
+
     else:
-        print("no timesheet entry work found")
+        raise Exception(f"Entry with id {id} not found")
