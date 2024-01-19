@@ -94,7 +94,6 @@ def report(date_str):
     from timesheet.reports.daily import daily_report
 
     if len(date_str) == 0:
-        cprint("No entry passed. Running daily report")
         daily_report(verbose=SETTINGS["timesheet"]["verbose"])
         return
 

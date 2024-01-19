@@ -43,6 +43,8 @@ def daily_report(date_str=None, verbose=True):
                 "white",
             )
             tt = t[2]
+        if first:
+            cprint("No entries found", "red")
     else:
         first = True
         for t in get(where_clause):
@@ -63,6 +65,9 @@ def daily_report(date_str=None, verbose=True):
                 "white",
             )
             tt = t[2]
+
+        if first:
+            cprint("No entries found", "red")
 
     if len(projectwise_work.keys()):
         cprint("------------------------", "yellow")
